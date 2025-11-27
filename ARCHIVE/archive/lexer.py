@@ -102,20 +102,99 @@ def reinit(stream=sys.stdin):
 
 
 def read_INT_to_EOI():
-    print("@ATTENTION: lexer.read_INT_to_EOI à finir !") # LIGNE A SUPPRIMER
-    return False
+    """Fonction reproduisant l'automate de reconnaissance des entiers"""
+
+    etats = ["q0","q1","puit"] #les états de l'automate
+    etat_finaux = ["q1"]
+    etat_init = "q0"
+    etat = etat_init
+
+
+    while peek_char1() not in defs.EOI: #Tant qu'on a pas atteint la fin de l'entrée
+        match etat: #On regarde dans quel état on est
+            case "q0":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q1"
+                    case _:
+                        etat = "puit"
+
+            case "q1":
+                match peek_char1():
+                
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q1"
+                    case _:
+                        etat = "puit"
+
+            case "puit": 
+                etat = "puit"
+
+        consume_char()
+
+    return (etat in etat_finaux) #On renvoie si le mot est reconnu ou pas
 
 
 def read_FLOAT_to_EOI():
-    print("@ATTENTION: lexer.read_FLOAT_to_EOI à finir !") # LIGNE A SUPPRIMER
-    return False
+    """Fonction reproduisant l'automate de reconnaissance des flottants"""
+
+    etats = ["q0","q1","q2","q3","puit"]
+    etat_finaux = ["q3"]
+    etat_init = "q0"
+    etat = etat_init
+
+
+    while peek_char1() not in defs.EOI: #Tant qu'on a pas atteint la fin de l'entrée
+        match etat:
+            case "q0":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q2"
+                    case ".":
+                        etat = "q1"
+                    case _:
+                        etat = "puit"
+
+            case "q1":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q3"
+                    case _:
+                        etat = "puit"
+
+            case "q2":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q2"
+                    case ".":
+                        etat = "q3"
+                    case _ :
+                        etat = "puit"
+
+            case "q3":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q3"
+                    case _ :
+                        etat = "puit"
+
+            case "puit": 
+                etat = "puit"
+
+        consume_char()
+    
+    return (etat in etat_finaux) #On renvoie si le mot est reconnu ou pas
 
 
 #################################
 ## Lecture de l'entrée: entiers, nombres, tokens
 
-
-# Lecture d'un chiffre, puis avancée et renvoi de sa valeur
+#Lecture d'un chiffre, puis avancée et renvoi de sa valeur
 def read_digit():
     current_char = peek_char1()
     if current_char not in defs.DIGITS:
@@ -127,31 +206,225 @@ def read_digit():
 
 # Lecture d'un entier en renvoyant sa valeur
 def read_INT():
-    print("@ATTENTION: lexer.read_INT à finir !") # LIGNE A SUPPRIMER
-    return 0;
+    "Fonction lisant un entier et renvoyant sa valeur"
+    current_char = peek_char1()
+    if current_char not in defs.DIGITS:
+        raise expected_digit_error(current_char1)
 
+    value = 0
+    # On continue jusqu'à ce qu'on trouve un EOI
+    while current_char in defs.DIGITS:
+        digit = read_digit()   # lit + consomme un chiffre
+        value = value * 10 + digit 
+        current_char = peek_char1()
+    return value
 
 global int_value
 global exp_value
 global sign_value
 
 # Lecture d'un nombre en renvoyant sa valeur
+
+#Premier essai de read_NUM() qui marche mais pas optimal, n'utilise pas d'automate
+"""def read_NUM():    
+    mantisse = 0
+    current_char = peek_char1()
+    #Ici, la mantisse on lit jusqu'à la virgule la virgule étant représenté par le point
+    #Partie entière
+    while current_char in defs.DIGITS:
+        digit = read_digit()
+        mantisse = mantisse*10 + digit
+        current_char = peek_char1()
+
+    #REMARQUE : ICI, on peut simplement mantisse = read_INT() 
+    #comme ça on lit direct la partie entière
+
+    if current_char == "." : #Pour la virgule 
+        consume_char()
+        current_char = peek_char1()
+        if current_char not in defs.DIGITS:
+            raise expected_digit_error(current_char) #Après la virgule il doit y avoir des chiffres
+        div = 0.1
+        while current_char in defs.DIGITS:
+            digit = read_digit()
+            mantisse += digit * div
+            div /= 10
+            current_char = peek_char1()
+
+        #Maintenant, on passe à l'exposant
+    valeur_exposant = 0
+    signe_exposant = 1  
+    #1 pour dire que c'est positif -1 pour exprimer les inverses
+    #Partie Exposant
+    if current_char == "e" or current_char == "E":0000000000
+        consume_char()
+        current_char = peek_char1()
+        if current_char  not in ("+" , "-") and current_char not in defs.DIGITS: #Après la puissance il faut un plus ou un chiffre
+            raise expected_digit_error(current_char)
+            #Alors là l'erreur j'ai fais comme read_digit() 
+            #tout en haut du fichier lexer.py ils disent d'utiliser Lexer pour lever l'erreur
+            #Tu veux qu'on laisse comme ça ou pas ?
+        if current_char == "+" : 
+           consume_char() 
+           current_char = peek_char1()
+           #ici le signe_exposant est 1 pas besoin de le repréciser
+        if current_char == "-" : #pck arpès le E il y a forcément soit un + soit un - 
+            consume_char()
+            signe_exposant = -1 
+            current_char = peek_char1()
+        while current_char in defs.DIGITS :  #je pense current_char != defs.EOI ca doit marcher là pck techniquement après la virgule tous les digits ce sera la fin
+            digit = read_digit()
+            valeur_exposant = valeur_exposant*10 + digit
+            current_char = peek_char1()
+
+    apres_virgule = 10**(signe_exposant*valeur_exposant)
+    return mantisse*apres_virgule
+"""
 def read_NUM():
-    print("@ATTENTION: lexer.read_NUM à finir !") # LIGNE A SUPPRIMER
-    return 0;
+
+    """Fonction lisant un nombre et renvoyant sa valeur"""
+
+    etats = ["q0","q1","q2","q3","q4","q5","q6","puit"]
+    etat_finaux = ["q2","q3","q6"]
+    etat_init = "q0"
+    etat = etat_init
+
+    max = "" #Pour stocker le lexème  de taille maximal reconnu pour l'instant
+
+    mantisse = 0.0
+    exposant_signe = None
+    exposant_valeur = 0.0
+
+    div = 0.1  #Pour la partie après la virgule, on divisera par 10 à chaque chiffre lu
+
+    while peek_char1() not in defs.EOI and etat != "puit": #etat != "puit" pour s'arrêter dès qu'on est dans le puit et ne pas consomer + que le max sinon on "mange" les prochains lexèmes, problématique pour la fonction next_token
+
+        match etat:
+            case "q0":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q3"
+                        mantisse = mantisse * 10 + float(peek_char1()) #On ajoute la valeur du nouveau chiffre en "décalant" la mantisse sur la gauche (*10)
+                    case ".":
+                        etat = "q1"
+                    case _:
+                        etat = "puit"
+
+            case "q1":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q2"
+                        mantisse = mantisse + float(peek_char1())*div
+                        div = div/10 #On divise par 10 pour le prochain chiffre après la virgule
+                    case _:
+                        etat = "puit"
+
+            case "q2":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q2"
+                        mantisse = mantisse + float(peek_char1())*div
+                        div = div/10
+                    case "E"|"e":
+                        etat = "q4"
+                        exposant_signe = "+" 
+                    case _:
+                        etat = "puit"
+
+            case "q3":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q3"
+                        mantisse = mantisse * 10 + float(peek_char1())
+                    case ".":
+                        etat = "q2"
+                    case "E"|"e":
+                        etat = "q4"
+                        exposant_signe = "+" 
+                    case _:
+                        etat = "puit"
+            
+            case "q4":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q6"
+                        exposant_valeur = exposant_valeur*10 + float(peek_char1())
+                    case "+":
+                        etat = "q5"
+                        exposant_signe = "+"
+                    case "-":
+                        etat = "q5"
+                        exposant_signe = "-"
+                    case _:
+                        etat = "puit"
+
+            case "q5":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q6"
+                        exposant_valeur = exposant_valeur*10 + float(peek_char1())
+                    case _:
+                        etat = "puit"
+
+            case "q6":
+                match peek_char1():
+
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                        etat = "q6"
+                        exposant_valeur = exposant_valeur*10 + float(peek_char1())
+                    case _:
+                        etat = "puit"
+
+            case "puit": 
+                etat = "puit"
+
+        if etat != "puit":
+            consume_char()
+        
+        if (etat in etat_finaux):
+            max = max + peek_char1()
+
+    if exposant_signe == "+":
+        exposant_signe = 1
+    if exposant_signe == "-":
+        exposant_signe = -1
+    if exposant_signe == None:
+        exposant_signe = 0
+
+    return (mantisse) * (10**(exposant_signe*exposant_valeur))
 
 
 # Parse un lexème (sans séparateurs) de l'entrée et renvoie son token.
 # Cela consomme tous les caractères du lexème lu.
 def read_token_after_separators():
-    print("@ATTENTION: lexer.read_token_after_separators à finir !") # LIGNE A SUPPRIMER
-    return (defs.V_T.END, None) # par défaut, on renvoie la fin de l'entrée
 
+    char1 = peek_char1()
+    if char1 in defs.EOI:
+        consume_char()
+        return (defs.V_T.END,None)
+    if char1 in ['+', '-', '*', '/', '^', '!', '(', ')', ';']:
+        consume_char()
+        return (defs.TOKEN_MAP[char1],None)
+
+    if char1 == "#":
+        consume_char()
+        return (defs.V_T.CALC,read_INT())
+        
+    return (defs.V_T.NUM,read_NUM())
 
 # Donne le prochain token de l'entrée, en sautant les séparateurs éventuels en tête
 # et en consommant les caractères du lexème reconnu.
 def next_token():
-    print("@ATTENTION: lexer.next_token à finir !") # LIGNE A SUPPRIMER
+
+    while peek_char1() in defs.SEP:
+        consume_char()
+
     return read_token_after_separators()
 
 
@@ -182,8 +455,29 @@ def test_lexer():
         print("@", defs.str_attr_token(token, value))
         token, value = next_token()
 
+def test_read_NUM(): #FONCTION PUREMENT CHATGPT pour essayer la méthode read_NUM()
+    print("@ Testing read_NUM. Type a number (integer, float, or with exponent).")
+    reinit()  # réinitialise le flux d'entrée
+    try:
+        value = read_NUM()
+        print("read_NUM() returned:", value)
+    except LexerError as e:
+        print("LexerError:", e)
+
+def test_read_INT(): #FONCTION PUREMENT CHATGPT pour essayer la méthode read_NUM()
+    print("@ Testing read_INT. Type a number (integer, float, or with exponent).")
+    reinit()  # réinitialise le flux d'entrée
+    try:
+        value = read_INT()
+        print("read_INT() returned:", value)
+    except LexerError as e:
+        print("LexerError:", e)
+
+
 if __name__ == "__main__":
     ## Choisir une seule ligne à décommenter
-    # test_INT_to_EOI()
-    # test_FLOAT_to_EOI()
+    ##test_INT_to_EOI()
+    #test_read_NUM()
+    #test_FLOAT_to_EOI()
+    ##test_read_INT()
     test_lexer()
