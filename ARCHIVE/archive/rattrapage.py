@@ -49,151 +49,182 @@ def consume_token(tok):
 #########################
 ## Parsing de input et exp
 
-def parse_input():
+def recover(suiv):
     
+    while get_current() not in suiv and get_current() != V_T.END:
+        consume_token(get_current())
+    
+    if get_current() == V_T.END:
+        raise ParserError("Parsing error: unexpected end of input.")
+    
+    
+    return get_current()
+
+def parse_input(L=[]):
     match get_current():
         case V_T.END:
-            return
+            return L
         case V_T.NUM | V_T.CALC | V_T.OPAR | V_T.SUB:
-            parse_exp5()
+            n = parse_exp5(L)
             consume_token(V_T.SEQ)
-            parse_input()
-            return
-        case _:
-            raise unexpected_token("NUM, CALC, OPAR, SUB, END")
+            L = L + [n]
+            L = parse_input(L)
 
-def parse_exp5():
+            return L
+        case _:
+            recover([V_T.NUM, V_T.CALC, V_T.OPAR, V_T.SUB,V_T.END])
+            parse_input(L)
+
+def parse_exp5(L):
     match get_current():
         case V_T.NUM | V_T.CALC | V_T.OPAR | V_T.SUB:
-            parse_exp4()
-            parse_Z()
-            return
+            n_1 = parse_exp4(L)
+            n = parse_Z(L,n_1)
+            return n
         case _:
-            raise unexpected_token("NUM, CALC, OPAR, SUB")
+            recover([V_T.NUM, V_T.CALC, V_T.OPAR, V_T.SUB])
+            parse_exp5(L)
 
-def parse_Z():
+def parse_Z(L,n_1):
     match get_current():
         case V_T.ADD | V_T.SUB:
-            parse_exp5_bis()
-            parse_Z()
-            return
+            n_2 = parse_exp5_bis(L,n_1)
+            n_3 = parse_Z(L,n_2)
+            return n_3
         case V_T.CPAR | V_T.SEQ:
-            return
+            return n_1
         case _:
-            raise unexpected_token("NADD, SUB, CPAR, SEQ")
+            recover([V_T.ADD, V_T.SUB, V_T.CPAR, V_T.SEQ])
+            parse_Z(L,n_1)
 
-def parse_exp5_bis():
+def parse_exp5_bis(L,n_1):
     match get_current():
         case V_T.ADD:
             consume_token(V_T.ADD)
-            parse_exp4()
-            return
+            n_2 = parse_exp4(L)
+            return n_1 + n_2
         case V_T.SUB:
             consume_token(V_T.SUB)
-            parse_exp4()
-            return
+            n_2 = parse_exp4(L)
+            return n_1 - n_2
         case _:
-            raise unexpected_token("ADD, SUB")
+            recover([V_T.ADD, V_T.SUB])
+            parse_exp5_bis(L,n_1)
 
-def parse_exp4():
+def parse_exp4(L):
     match get_current():
         case V_T.NUM | V_T.CALC | V_T.OPAR | V_T.SUB:
-            parse_exp3()
-            parse_Y()
-            return
+            n_1 = parse_exp3(L)
+            n = parse_Y(L,n_1)
+            return n
         case _:
-            raise unexpected_token("NUM, CALC, OPAR, SUB")
+            recover([V_T.NUM, V_T.CALC, V_T.OPAR, V_T.SUB])
+            parse_exp4(L)
 
-def parse_Y():
+def parse_Y(L,n_1):
     match get_current():
         case V_T.MUL | V_T.DIV:
-            parse_exp4_bis()
-            parse_Y()
-            return
+            n_2 = parse_exp4_bis(L,n_1)
+            n_3 = parse_Y(L,n_2)
+            return n_3
         case V_T.CPAR | V_T.ADD | V_T.SUB | V_T.SEQ:
-            return
+            n_3 = n_1
+            return n_3
         case _:
-            raise unexpected_token("MUL, DIV, CPAR, ADD, SUB, SEQ")
+            recover([V_T.MUL, V_T.DIV, V_T.CPAR, V_T.ADD, V_T.SUB, V_T.SEQ])
+            parse_Y(L,n_1)
 
-def parse_exp4_bis():
+def parse_exp4_bis(L,n_1):
     match get_current():
         case V_T.MUL:
             consume_token(V_T.MUL)
-            parse_exp3()
-            return
+            n_2 = parse_exp3(L)
+            n = n_1 * n_2
+            return n
         case V_T.DIV:
             consume_token(V_T.DIV)
-            parse_exp3()
-            return
+            n_2 = parse_exp3(L)
+            return n_1 / n_2
         case _:
-            raise unexpected_token("MUL, DIV")
+            recover([V_T.MUL, V_T.DIV])
+            parse_exp4_bis(L,n_1)
 
-def parse_exp3():   
+def parse_exp3(L):   
     match get_current():
         case V_T.SUB:
             consume_token(V_T.SUB)
-            parse_exp3()
-            return
+            n_1 = parse_exp3(L)
+            n = -1 * n_1
+            return n
         case V_T.NUM | V_T.CALC | V_T.OPAR:
-            parse_exp2()
-            return
+            n = parse_exp2(L)
+            return n 
         case _:
-            raise unexpected_token("SUB, NUM, CALC, OPAR")
+            recover([V_T.SUB, V_T.NUM, V_T.CALC, V_T.OPAR])
+            parse_exp3(L)
 
-def parse_exp2():
+def parse_exp2(L):
     match get_current():
         case V_T.NUM | V_T.CALC | V_T.OPAR:
-            parse_exp1()
-            parse_exp2_bis()
-            return
+            n_1 = parse_exp1(L)
+            n = parse_exp2_bis(n_1)
+            return n
         case _:
-            raise unexpected_token("NUM, CALC, OPAR")
+            recover([V_T.NUM, V_T.CALC, V_T.OPAR])
+            parse_exp2(L)
 
-def parse_exp2_bis():
+def parse_exp2_bis(n):
     match get_current():
         case V_T.FACT:
             consume_token(V_T.FACT)
-            return
+            return factorial(int(n))
         case V_T.CPAR | V_T.MUL | V_T.DIV | V_T.ADD | V_T.SUB | V_T.SEQ:
-            return
+            return n
         case _:
-            raise unexpected_token("FACT, CPAR, MUL, DIV, ADD, SUB, SEQ")
+            recover([V_T.FACT, V_T.CPAR, V_T.MUL, V_T.DIV, V_T.ADD, V_T.SUB, V_T.SEQ])
+            parse_exp2_bis(n)
 
-def parse_exp1():
+def parse_exp1(L):
     match get_current():
         case V_T.NUM | V_T.CALC | V_T.OPAR:
-            parse_exp0()
-            parse_exp1_bis()
-            return
+            n_1 = parse_exp0(L)
+            n = parse_exp1_bis(L,n_1)
+            return n
         case _:
-            raise unexpected_token("NUM, CALC, OPAR")
+            recover([V_T.NUM, V_T.CALC, V_T.OPAR])
+            parse_exp1(L)
 
-def parse_exp1_bis():
+def parse_exp1_bis(L,n):
     match get_current():
         case V_T.POW:
             consume_token(V_T.POW)
-            parse_exp1()
-            return
+            n_1 = parse_exp1(L)
+            return n**n_1
         case V_T.CPAR | V_T.FACT | V_T.MUL | V_T.DIV | V_T.ADD | V_T.SUB | V_T.SEQ:
-            return 
+            return n
         case _:
-            raise unexpected_token("POW, CPAR, FACT, MUL, DIV, ADD, SUB, SEQ")
+            recover([V_T.POW, V_T.CPAR, V_T.FACT, V_T.MUL, V_T.DIV, V_T.ADD, V_T.SUB, V_T.SEQ])
+            parse_exp1_bis(L,n)
 
-def parse_exp0():
+def parse_exp0(L):
     match get_current():
         case V_T.NUM:
-            consume_token(V_T.NUM)
-            return
+            n = consume_token(V_T.NUM)
+            return n
         case V_T.CALC:
-            consume_token(V_T.CALC)
-            return
+            i = consume_token(V_T.CALC)
+            print(i)
+            n = L[i-1]
+            return n
         case V_T.OPAR:
             consume_token(V_T.OPAR)
-            parse_exp5()
+            n = parse_exp5(L)
             consume_token(V_T.CPAR)
-            return
+            return n
         case _:
-            raise unexpected_token("NUM, CALC, OPAR")
+            recover([V_T.NUM, V_T.CALC, V_T.OPAR])
+            parse_exp0(L)
+
 
 
 

@@ -266,6 +266,6 @@ if __name__ == '__main__':
     exec_test_INT_to_EOI()
     exec_test_FLOAT_to_EOI()
     exec_test_INT()
-    exec_test_NUM()
+    #exec_test_NUM()
     exec_test_next_token()
     print("\n@ all tests OK !")

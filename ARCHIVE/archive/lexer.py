@@ -102,16 +102,15 @@ def reinit(stream=sys.stdin):
 
 
 def read_INT_to_EOI():
-    """Fonction reproduisant l'automate de reconnaissance des entiers"""
 
-    etats = ["q0","q1","puit"] #les états de l'automate
+    etats = ["q0","q1","puit"]
     etat_finaux = ["q1"]
     etat_init = "q0"
     etat = etat_init
 
 
-    while peek_char1() not in defs.EOI: #Tant qu'on a pas atteint la fin de l'entrée
-        match etat: #On regarde dans quel état on est
+    while peek_char1() not in defs.EOI:
+        match etat:
             case "q0":
                 match peek_char1():
 
@@ -133,11 +132,10 @@ def read_INT_to_EOI():
 
         consume_char()
 
-    return (etat in etat_finaux) #On renvoie si le mot est reconnu ou pas
+    return (etat in etat_finaux)
 
 
 def read_FLOAT_to_EOI():
-    """Fonction reproduisant l'automate de reconnaissance des flottants"""
 
     etats = ["q0","q1","q2","q3","puit"]
     etat_finaux = ["q3"]
@@ -145,7 +143,7 @@ def read_FLOAT_to_EOI():
     etat = etat_init
 
 
-    while peek_char1() not in defs.EOI: #Tant qu'on a pas atteint la fin de l'entrée
+    while peek_char1() not in defs.EOI:
         match etat:
             case "q0":
                 match peek_char1():
@@ -188,7 +186,7 @@ def read_FLOAT_to_EOI():
 
         consume_char()
     
-    return (etat in etat_finaux) #On renvoie si le mot est reconnu ou pas
+    return (etat in etat_finaux) 
 
 
 #################################
@@ -224,65 +222,7 @@ global exp_value
 global sign_value
 
 # Lecture d'un nombre en renvoyant sa valeur
-
-#Premier essai de read_NUM() qui marche mais pas optimal, n'utilise pas d'automate
-"""def read_NUM():    
-    mantisse = 0
-    current_char = peek_char1()
-    #Ici, la mantisse on lit jusqu'à la virgule la virgule étant représenté par le point
-    #Partie entière
-    while current_char in defs.DIGITS:
-        digit = read_digit()
-        mantisse = mantisse*10 + digit
-        current_char = peek_char1()
-
-    #REMARQUE : ICI, on peut simplement mantisse = read_INT() 
-    #comme ça on lit direct la partie entière
-
-    if current_char == "." : #Pour la virgule 
-        consume_char()
-        current_char = peek_char1()
-        if current_char not in defs.DIGITS:
-            raise expected_digit_error(current_char) #Après la virgule il doit y avoir des chiffres
-        div = 0.1
-        while current_char in defs.DIGITS:
-            digit = read_digit()
-            mantisse += digit * div
-            div /= 10
-            current_char = peek_char1()
-
-        #Maintenant, on passe à l'exposant
-    valeur_exposant = 0
-    signe_exposant = 1  
-    #1 pour dire que c'est positif -1 pour exprimer les inverses
-    #Partie Exposant
-    if current_char == "e" or current_char == "E":0000000000
-        consume_char()
-        current_char = peek_char1()
-        if current_char  not in ("+" , "-") and current_char not in defs.DIGITS: #Après la puissance il faut un plus ou un chiffre
-            raise expected_digit_error(current_char)
-            #Alors là l'erreur j'ai fais comme read_digit() 
-            #tout en haut du fichier lexer.py ils disent d'utiliser Lexer pour lever l'erreur
-            #Tu veux qu'on laisse comme ça ou pas ?
-        if current_char == "+" : 
-           consume_char() 
-           current_char = peek_char1()
-           #ici le signe_exposant est 1 pas besoin de le repréciser
-        if current_char == "-" : #pck arpès le E il y a forcément soit un + soit un - 
-            consume_char()
-            signe_exposant = -1 
-            current_char = peek_char1()
-        while current_char in defs.DIGITS :  #je pense current_char != defs.EOI ca doit marcher là pck techniquement après la virgule tous les digits ce sera la fin
-            digit = read_digit()
-            valeur_exposant = valeur_exposant*10 + digit
-            current_char = peek_char1()
-
-    apres_virgule = 10**(signe_exposant*valeur_exposant)
-    return mantisse*apres_virgule
-"""
 def read_NUM():
-
-    """Fonction lisant un nombre et renvoyant sa valeur"""
 
     etats = ["q0","q1","q2","q3","q4","q5","q6","puit"]
     etat_finaux = ["q2","q3","q6"]
@@ -455,29 +395,8 @@ def test_lexer():
         print("@", defs.str_attr_token(token, value))
         token, value = next_token()
 
-def test_read_NUM(): #FONCTION PUREMENT CHATGPT pour essayer la méthode read_NUM()
-    print("@ Testing read_NUM. Type a number (integer, float, or with exponent).")
-    reinit()  # réinitialise le flux d'entrée
-    try:
-        value = read_NUM()
-        print("read_NUM() returned:", value)
-    except LexerError as e:
-        print("LexerError:", e)
-
-def test_read_INT(): #FONCTION PUREMENT CHATGPT pour essayer la méthode read_NUM()
-    print("@ Testing read_INT. Type a number (integer, float, or with exponent).")
-    reinit()  # réinitialise le flux d'entrée
-    try:
-        value = read_INT()
-        print("read_INT() returned:", value)
-    except LexerError as e:
-        print("LexerError:", e)
-
-
 if __name__ == "__main__":
     ## Choisir une seule ligne à décommenter
     ##test_INT_to_EOI()
-    #test_read_NUM()
     #test_FLOAT_to_EOI()
-    ##test_read_INT()
     test_lexer()
