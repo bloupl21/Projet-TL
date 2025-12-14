@@ -48,7 +48,55 @@ def consume_token(tok):
 
 #########################
 ## Parsing de input et exp
+"""
+================================================================================
+GRAMMAIRE ATTRIBUÉE (Notation Partiels - Variables n1, n2)
+================================================================================
+LÉGENDE :
+  ↓ : Attribut Hérité (descendant / argument)
+  ↑ : Attribut Synthétisé (remontant / return)
+  l : La liste mémoire
+  ε : Epsilon
 
+Input ↓l ↑l'  -> Exp5 ↓l ↑n   SEQ   Input ↓(l + [n]) ↑l'
+               | ε            (l' = l)
+
+Exp5 ↓l ↑n    -> Exp4 ↓l ↑n1   Z ↓l ↓n1 ↑n
+
+Z ↓l ↓n1 ↑n   -> Exp5Bis ↓l ↓n1 ↑n2   Z ↓l ↓n2 ↑n
+               | ε             (n = n1)
+
+Exp5Bis ↓l ↓n1 ↑n
+              -> ADD   Exp4 ↓l ↑n2    (n = n1 + n2)
+               | SUB   Exp4 ↓l ↑n2    (n = n1 - n2)
+
+Exp4 ↓l ↑n    -> Exp3 ↓l ↑n1   Y ↓l ↓n1 ↑n
+
+Y ↓l ↓n1 ↑n   -> Exp4Bis ↓l ↓n1 ↑n2   Y ↓l ↓n2 ↑n
+               | ε             (n = n1)
+
+Exp4Bis ↓l ↓n1 ↑n
+              -> MUL   Exp3 ↓l ↑n2    (n = n1 * n2)
+               | DIV   Exp3 ↓l ↑n2    (n = n1 / n2)
+
+Exp3 ↓l ↑n    -> SUB   Exp3 ↓l ↑n1    (n = -n1)
+               | Exp2 ↓l ↑n
+
+Exp2 ↓l ↑n    -> Exp1 ↓l ↑n1   Exp2Bis ↓n1 ↑n
+
+Exp2Bis ↓n1 ↑n-> FACT          (n = n1!)
+               | ε             (n = n1)
+
+Exp1 ↓l ↑n    -> Exp0 ↓l ↑n1   Exp1Bis ↓l ↓n1 ↑n
+
+Exp1Bis ↓l ↓n1 ↑n
+              -> POW   Exp1 ↓l ↑n2    (n = n1 ** n2)
+               | ε             (n = n1)
+
+Exp0 ↓l ↑n    -> NUM ↑n
+               | CALC ↑i       (n = l[i-1])
+               | ( Exp5 ↓l ↑n )
+"""
 def parse_input(L=[]):
     match get_current():
         case V_T.END:
