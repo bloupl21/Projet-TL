@@ -48,7 +48,41 @@ def consume_token(tok):
 
 #########################
 ## Parsing de input et exp
+#Ici, on implémente chacune des fonctions parse en fonction de notre Grammaire LL(1) qu'on a obtenu avec les directeurs#
+#Voici ci dessous la grammaire qu'on a obtenu : 
+"""
+Grammaire LL(1) implémentée :
 
+Input    -> Exp5 SEQ Input
+          | epsilon
+
+Exp5     -> Exp4 Z
+Z        -> Exp5Bis Z
+          | epsilon
+Exp5Bis  -> ADD Exp4
+          | SUB Exp4
+
+Exp4     -> Exp3 Y
+Y        -> Exp4Bis Y
+          | epsilon
+Exp4Bis  -> MUL Exp3
+          | DIV Exp3
+
+Exp3     -> SUB Exp3
+          | Exp2
+
+Exp2     -> Exp1 Exp2Bis
+Exp2Bis  -> FACT
+          | epsilon
+
+Exp1     -> Exp0 Exp1Bis
+Exp1Bis  -> POW Exp1
+          | epsilon
+
+Exp0     -> NUM
+          | CALC
+          | OPAR Exp5 CPAR
+"""
 def parse_input():
     
     match get_current():
