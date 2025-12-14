@@ -100,7 +100,7 @@ def reinit(stream=sys.stdin):
 #################################
 ## Automates pour les entiers et les flottants
 
-
+#Cette fonction représente le 1er automate de l'énoncé
 def read_INT_to_EOI():
 
     etats = ["q0","q1","puit"]
@@ -108,25 +108,24 @@ def read_INT_to_EOI():
     etat_init = "q0"
     etat = etat_init
 
-
+    #On fait un match pour traiter chacun des états un à un et on associe leur transition
     while peek_char1() not in defs.EOI:
         match etat:
-            case "q0":
+            case "q0": #q0
                 match peek_char1():
 
-                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                    case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9": #les transitions
                         etat = "q1"
                     case _:
                         etat = "puit"
 
-            case "q1":
+            case "q1": #q1
                 match peek_char1():
                 
                     case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
                         etat = "q1"
                     case _:
                         etat = "puit"
-
             case "puit": 
                 etat = "puit"
 
@@ -134,7 +133,7 @@ def read_INT_to_EOI():
 
     return (etat in etat_finaux)
 
-
+#Cette fonction représente le 2eme automate de l'énoncé
 def read_FLOAT_to_EOI():
 
     etats = ["q0","q1","q2","q3","puit"]
@@ -231,14 +230,14 @@ def read_NUM():
 
     max = "" #Pour stocker le lexème  de taille maximal reconnu pour l'instant
 
-    mantisse = 0.0
+    mantisse = 0.0 
     exposant_signe = None
     exposant_valeur = 0.0
 
     div = 0.1  #Pour la partie après la virgule, on divisera par 10 à chaque chiffre lu
 
     while peek_char1() not in defs.EOI and etat != "puit": #etat != "puit" pour s'arrêter dès qu'on est dans le puit et ne pas consomer + que le max sinon on "mange" les prochains lexèmes, problématique pour la fonction next_token
-
+        #On traite les états et chacune de leurs transitions une à une
         match etat:
             case "q0":
                 match peek_char1():
@@ -336,7 +335,6 @@ def read_NUM():
         exposant_signe = -1
     if exposant_signe == None:
         exposant_signe = 0
-
     return (mantisse) * (10**(exposant_signe*exposant_valeur))
 
 
